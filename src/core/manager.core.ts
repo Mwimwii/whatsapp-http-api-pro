@@ -31,13 +31,6 @@ import { WhatsappSessionWebJSCore } from './session.webjs.core';
 import { MediaStorageCore, SessionStorageCore } from './storage.core';
 import { WebhookConductorCore } from './webhooks.core';
 
-export class OnlyDefaultSessionIsAllowed extends UnprocessableEntityException {
-  constructor() {
-    super(
-      `WAHA Core support only 'default' session. If you want to run more then one WhatsApp account - please get WAHA PLUS version. Check this out: ${DOCS_URL}`,
-    );
-  }
-}
 
 export function buildLogger(name) {
   return new ConsoleLogger(name, { logLevels: getLogLevels() });
@@ -88,12 +81,6 @@ export class SessionManagerCore extends SessionManager {
     }
   }
 
-  private onlyDefault(name: string) {
-    if (name !== this.DEFAULT) {
-      throw new OnlyDefaultSessionIsAllowed();
-    }
-  }
-
   async onApplicationShutdown(signal?: string) {
     if (!this.session) {
       return;
@@ -105,8 +92,6 @@ export class SessionManagerCore extends SessionManager {
   // API Methods
   //
   async start(request: SessionStartRequest): Promise<SessionDTO> {
-    this.onlyDefault(request.name);
-
     const name = request.name;
     this.log.log(`'${name}' - starting session...`);
     const log = buildLogger(`WhatsappSession - ${name}`);
@@ -167,8 +152,6 @@ export class SessionManagerCore extends SessionManager {
   }
 
   async stop(request: SessionStopRequest): Promise<void> {
-    this.onlyDefault(request.name);
-
     const name = request.name;
     this.log.log(`Stopping ${name} session...`);
     const session = this.getSession(name);
@@ -182,7 +165,6 @@ export class SessionManagerCore extends SessionManager {
   }
 
   getSession(name: string, error = true): WhatsappSession {
-    this.onlyDefault(name);
     const session = this.session;
     if (!session) {
       if (error) {
